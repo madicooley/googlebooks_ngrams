@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Feb 29 21:39:28 2020
-
 @author: mario
 """
 
@@ -20,18 +19,18 @@ sw = stopwords.words("english")
 list.sort(sw)
 
 for s in sw:
-  # Does not use case-insenstive in regex as it performs far slower
-  # than just query 3x
-  lw = s
-  Uw = s.upper()
-  Cw = s.capitalize()
-  query = {'ngram': lw }
-  col.delete_many(query)
-  query = {'ngram': Uw }
-  col.delete_many(query)
-  query = {'ngram': Cw }
-  col.delete_many(query)
-  print('Deleting ', s)
+    # Does not use case-insenstive in regex as it performs far slower
+    # than just query 3x
+    lw = s
+    Uw = s.upper()
+    Cw = s.capitalize()
+    query = {'ngram': lw }
+    col.delete_many(query)
+    query = {'ngram': Uw }
+    col.delete_many(query)
+    query = {'ngram': Cw }
+    col.delete_many(query)
+    print('Deleting ', s)
 
 # Removes all documents with special characters
 print('deleteing special characters')
