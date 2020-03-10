@@ -105,19 +105,20 @@ def compare_american_to_english(dat_eng, dat_amer, collection, collection_amer, 
     ax.legend()
 
 
-    def autolabel(rects):
-        """Attach a text label above each bar in *rects*, displaying its height."""
-        for rect in rects:
-            height = rect.get_height()
-            ax.annotate('{}'.format(height),
-                        xy=(rect.get_x() + rect.get_width() / 2, height),
-                        xytext=(0, 3),  # 3 points vertical offset
-                        textcoords="offset points",
-                        ha='center', va='bottom')
+    # TODO figure out how to rotate these labels, they are too messy as is.
+    #def autolabel(rects):
+        #"""Attach a text label above each bar in *rects*, displaying its height."""
+        #for rect in rects:
+            #height = rect.get_height()
+            #ax.annotate("{:.2e}".format(height),
+                        #xy=(rect.get_x() + rect.get_width() / 2, height),
+                        #xytext=(0, 3),  # 3 points vertical offset
+                        #textcoords="offset points",
+                        #ha='center', va='bottom')
 
 
-    autolabel(rects1)
-    autolabel(rects2)
+    #autolabel(rects1)
+    #autolabel(rects2)
 
     fig.tight_layout()
     plt.show()
