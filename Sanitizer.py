@@ -46,9 +46,9 @@ query = {'ngram': { "$regex": regex }}
 x = col.delete_many(query)
 print(x.deleted_count, " numerical documents deleted.") 
 
-# Removes all documents with accents
+# Removes all documents with accents/latin characters
 print('deleting numbers')
-regex = re.compile('[À-ú]') 
+regex = re.compile('[À-ǿ]') 
 query = {'ngram': { "$regex": regex }}     
 x = col.delete_many(query)
 print(x.deleted_count, " accented documents deleted.") 
