@@ -9,6 +9,7 @@ def get_filename(query, collection):
     """
         Locates the desired file
         TODO: eventually change this to loop over all files to create plots and things
+        TODO: better file querying
     """
     for filename in os.listdir('output'):
         if "_"+query+'.pkl' in filename and "_"+collection+"_" in filename:
@@ -30,6 +31,32 @@ def read_misra_results(query, collection):
         print(dat)
     return dat
 
+
+def get_top_freq_words(dat, k):
+    """
+    Given data, find the top k most frequent words with associated counts
+    """
+    
+    counts = np.array(dat['C'])
+    labels = np.array(dat['L'])
+    
+    # indices of top k
+    temp1 = np.argpartition(-counts, k)
+    top_indices = temp1[:k]
+
+    # count values
+    temp2 = np.partition(-counts, k)
+    top_count_values = -temp2[:k]
+    
+    # associated labels
+    top_labels = [labels[i] for i in top_indices]
+    
+    print(top_indices)
+    print(top_count_values)
+    print(top_labels)
+    
+    return {'C':top_count_values, 'L':top_labels}
+    
 
 def plot(dat, collection, query):
     """
@@ -94,11 +121,12 @@ def compare_american_to_english(dat_eng, dat_amer, collection, collection_amer, 
     
     width = 0.35  # the width of the bars
     fig, ax = plt.subplots()
-    rects1 = ax.bar(x - width/2, eng_counts, width, label='English')
-    rects2 = ax.bar(x + width/2, amer_counts, width, label='American')
+    rects1 = ax.bar(x - width/2, eng_counts, width, label='British English')
+    rects2 = ax.bar(x + width/2, amer_counts, width, label='American English')
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Counts')
+    ax.set_xlabel('Labels')
     ax.set_title('Misra-Gries English vs. American "'+query+'" '+' 1-grams')
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=70)
@@ -106,19 +134,20 @@ def compare_american_to_english(dat_eng, dat_amer, collection, collection_amer, 
 
 
     # TODO figure out how to rotate these labels, they are too messy as is.
-    #def autolabel(rects):
-        #"""Attach a text label above each bar in *rects*, displaying its height."""
-        #for rect in rects:
-            #height = rect.get_height()
-            #ax.annotate("{:.2e}".format(height),
-                        #xy=(rect.get_x() + rect.get_width() / 2, height),
-                        #xytext=(0, 3),  # 3 points vertical offset
-                        #textcoords="offset points",
-                        #ha='center', va='bottom')
+    def autolabel(rects):
+        """Attach a text label above each bar in *rects*, displaying its height."""
+        for rect in rects:
+            height = rect.get_height()
+            if height > 0:
+                ax.annotate("{:.2e}".format(height),
+                            xy=(rect.get_x() + rect.get_width() / 2, height),
+                            xytext=(0, 3),  # 3 points vertical offset
+                            textcoords="offset points",
+                            ha='center', va='bottom')
 
 
-    #autolabel(rects1)
-    #autolabel(rects2)
+    autolabel(rects1)
+    autolabel(rects2)
 
     fig.tight_layout()
     plt.show()
@@ -134,17 +163,23 @@ def compare_misra_to_countmin():
 def main():
     query = 'A'  # the letter of the ngram we want to read
     
-    # English
+    # British English
     collection = 'English'  # 'American' or 'English'
-    dat = read_misra_results(query, collection)
-    #plot(dat, collection, query)
-    
+    dat_eng = read_misra_results(query, collection)
+   
     # American
     collection_amer = 'American'  # 'American' or 'English'
     dat_amer = read_misra_results(query, collection_amer)
+    
+    # individual plots
+    #plot(dat, collection, query)
     #plot(dat_amer, collection_amer, query)
     
-    compare_american_to_english(dat, dat_amer, collection, collection_amer, query)
+    k = 10  # top 10 most frequent words
+    dat_eng = get_top_freq_words(dat_eng, k)
+    dat_amer = get_top_freq_words(dat_amer, k)
+    
+    compare_american_to_english(dat_eng, dat_amer, collection, collection_amer, query)
 
     # TODO implement compare_misra_to_countmin()
     
