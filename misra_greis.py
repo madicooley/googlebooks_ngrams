@@ -6,7 +6,7 @@ import os
 import string
 import re
 import time
-
+import argparse
 
 n_top_words = 10
 #k_min = 20
@@ -148,10 +148,27 @@ def save_to_file(query, collection):
         pickle.dump(obj, fp)
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description='None')
+    parser.add_argument('-q', "--query", action='store', help="", required=True)
+    parser.add_argument('-c', '--collection', action='store', help="", required=True)
+
+    args = vars(parser.parse_args())
+
+    return args
+
+
 def main():
+    args = get_args()
+    print(args)
+    
     # NOTE set QUERY = 'all' to run on entire db
-    QUERY = '^[aA]'  # to query the ngrams which start with a specific letter, follow this format
-    collection = 'English'  # 'American' or 'English'
+    # to query the ngrams which start with a specific letter, follow this format
+    #QUERY = '^[aA]'  
+    #collection = 'American'  # 'American' or 'English'
+    
+    QUERY = args['query']
+    collection = args['collection']
     
     get_stream(QUERY, collection)  
     
