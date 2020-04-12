@@ -24,6 +24,7 @@ def read_misra_results(query, collection):
     The 'C' key has the corresponding counts
     """
     fname = get_filename(query, collection)
+    print("***", fname)
     
     dat = {}
     with open("output/"+fname, "rb") as f:
@@ -120,7 +121,7 @@ def compare_american_to_english(dat_eng, dat_amer, collection, collection_amer, 
     # NOTE below code from https://matplotlib.org/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
     
     width = 0.35  # the width of the bars
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(5,5))
     rects1 = ax.bar(x - width/2, eng_counts, width, label='British English')
     rects2 = ax.bar(x + width/2, amer_counts, width, label='American English')
 
@@ -146,8 +147,8 @@ def compare_american_to_english(dat_eng, dat_amer, collection, collection_amer, 
                             ha='center', va='bottom')
 
 
-    autolabel(rects1)
-    autolabel(rects2)
+    #autolabel(rects1)
+    #autolabel(rects2)
 
     fig.tight_layout()
     plt.show()
@@ -161,7 +162,7 @@ def compare_misra_to_countmin():
 
 
 def main():
-    query = 'A'  # the letter of the ngram we want to read
+    query = '[cC]'  # the letter of the ngram we want to read
     
     # British English
     collection = 'English'  # 'American' or 'English'
