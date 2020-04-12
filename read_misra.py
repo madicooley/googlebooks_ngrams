@@ -8,11 +8,20 @@ import numpy as np
 def get_filename(query, collection):
     """
         Locates the desired file
-        TODO: eventually change this to loop over all files to create plots and things
-        TODO: better file querying
     """
     for filename in os.listdir('output'):
         if "_"+query+'.pkl' in filename and "_"+collection+"_" in filename:
+            return filename
+    print("ERROR: Could not locate desired file.")
+
+
+def get_filename_two(query, collection):
+    """
+        Locates the desired file
+    """
+    for filename in os.listdir('output'):
+        if "_"+query+'.pkl' in filename and "_"+collection+"_" in filename \
+        and "TWOPASS_MISRA" in filename:
             return filename
     print("ERROR: Could not locate desired file.")
 
@@ -23,7 +32,8 @@ def read_misra_results(query, collection):
     The 'L' key has the labels--specific ngram
     The 'C' key has the corresponding counts
     """
-    fname = get_filename(query, collection)
+    #fname = get_filename(query, collection)
+    fname = get_filename_two(query, collection)
     print("***", fname)
     
     dat = {}
@@ -162,7 +172,7 @@ def compare_misra_to_countmin():
 
 
 def main():
-    query = '[cC]'  # the letter of the ngram we want to read
+    query = '[aA]'  # the letter of the ngram we want to read
     
     # British English
     collection = 'English'  # 'American' or 'English'

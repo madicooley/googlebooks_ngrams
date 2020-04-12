@@ -63,7 +63,7 @@ def misra_greis(single_ngram, match_count):
         This version is much quicker than the slow version. 
     
     """
-    ai = single_ngram.lower()
+    ai = str(single_ngram).lower()
     
     #for i in range(match_count):
     inL = False
