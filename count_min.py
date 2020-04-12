@@ -10,15 +10,17 @@ import numpy as np
 import time
 
 
-n_top_words = 10
+n_top_words = 20
 
 class CountMinSketch:
     
-    def __init__(self, t, k):
+    def __init__(self, t, k, counters = [], salt = []):
         # t: number of hash functions
         # k: number of counters per hash function
         self.t = t
         self.k = k
+        self.counters = counters
+        self.s = salt
     
     def fit(self, col):
         
@@ -37,6 +39,8 @@ class CountMinSketch:
         
         # loop through all documents in a collection
         for document in col.find():
+            if not isinstance(document['ngram'], str):
+                continue
             # use the lowercase of the ngram as input
             c = document['ngram'].lower()
             self.total_doc_count += 1
@@ -102,11 +106,49 @@ def get_stream(query, collection):
     print('Total # of documents considered = ', cms.total_doc_count)
     print ('*'*50)
 
+    with open("output/COUNTMIN_MODEL_"+collection+"_"+query+".pkl", "wb") as fp:   #Pickling
+        obj = cms.counters
+        pickle.dump(obj, fp)
+    with open("output/COUNTMIN_SALT_"+collection+"_"+query+".pkl", "wb") as fp:   #Pickling
+        obj = cms.s
+        pickle.dump(obj, fp)
+
+def get_top_words(query, collection):
+    #get_stream(QUERY, collection) 
+    client = py.MongoClient('localhost', 27017)
+    
+    # NOTE: probably will need to change these for your names
+    db = client.NGRAM  
+    
+    if collection == 'American':
+        col = db.American_1gram      # american english
+    elif collection == 'English':
+        col = db.English_1gram       # british english
+    print(col)
+    print("Collection: ", collection)
+
+    # to check connection to db
+    print('Query: ', query)
+    item = col.find_one({"ngram": {'$regex':query}})       
+    print("Checking Connection: ", item)
+    
+    if item == None:
+        print("Connection unsuccessful, aborting")
+        return 
+    print ('*'*50)
+
+    filehandler = open("output/COUNTMIN_MODEL_"+collection+"_"+query+".pkl", 'rb') 
+    counters = pickle.load(filehandler)
+    filehandler = open("output/COUNTMIN_SALT_"+collection+"_"+query+".pkl", 'rb') 
+    salt = pickle.load(filehandler)
+    cms = CountMinSketch(10, 2000, counters, salt)
     print ('getting top frequency words')
     # query all documents to find the top frequency words
     seen = set()
     top_freq_heap = []
     for doc in col.find():
+        if not isinstance(doc['ngram'], str):
+            continue
         word = doc['ngram'].lower()
         if word in seen:
             continue
@@ -120,13 +162,52 @@ def get_stream(query, collection):
     top_freq_heap = top_freq_heap[::-1]
     top_freq_df = pd.DataFrame(top_freq_heap, columns = ['count', 'label']) 
     print(top_freq_df)
+
+    if not os.path.exists("output"):  # if output dir doesnt exists, creates it
+        os.makedirs("output")
+        
+    # TODO probably need to update the replacing
+    with open("output/COUNTMIN_TOP_FREQ_"+collection+"_"+query+".pkl", "wb") as fp:   #Pickling
+        obj = {'L':top_freq_df['label'].to_list(), 'C':top_freq_df['count'].to_list()}
+        pickle.dump(obj, fp)
+
+    #with open("output/COUNTMIN_MISRA_TOPWORDS_"+collection+"_"+query+".pkl", "wb") as fp:   #Pickling
+    #    obj = {'L':misra_label[:n_top_words], 'C':countmin_count}
+    #    pickle.dump(obj, fp)
+def query_misra_results(query, collection):
+    client = py.MongoClient('localhost', 27017)
+    
+    # NOTE: probably will need to change these for your names
+    db = client.NGRAM  
+    
+    if collection == 'American':
+        col = db.American_1gram      # american english
+    elif collection == 'English':
+        col = db.English_1gram       # british english
+    print(col)
+    print("Collection: ", collection)
+
+    # to check connection to db
+    print('Query: ', query)
+    item = col.find_one({"ngram": {'$regex':query}})       
+    print("Checking Connection: ", item)
+    
+    if item == None:
+        print("Connection unsuccessful, aborting")
+        return 
     print ('*'*50)
+
+    filehandler = open("output/COUNTMIN_MODEL_"+collection+"_"+query+".pkl", 'rb') 
+    counters = pickle.load(filehandler)
+    filehandler = open("output/COUNTMIN_SALT_"+collection+"_"+query+".pkl", 'rb') 
+    salt = pickle.load(filehandler)
+    cms = CountMinSketch(10, 2000, counters, salt)
 
     print ('query misra-greis top words')
     if query != 'all':
-        q = query[3]
+        query = query[3]
     for filename in os.listdir('output'):
-        if "_"+q+'.pkl' in filename and "MISRA_"+collection+"_" in filename:
+        if "_"+query+'.pkl' in filename and "MISRA_"+collection+"_" in filename:
             fname = filename
             break
     misra_results = {}
@@ -141,31 +222,24 @@ def get_stream(query, collection):
         countmin_count.append(freq)
     print(misra_label[:n_top_words], countmin_count)
 
-    if need_temp:
-        db.temp.drop()
-
-
     if not os.path.exists("output"):  # if output dir doesnt exists, creates it
         os.makedirs("output")
         
     # TODO probably need to update the replacing
-    query_value = query[3]
-    with open("output/COUNTMIN_TOP_FREQ_"+collection+"_"+query_value+".pkl", "wb") as fp:   #Pickling
-        obj = {'L':top_freq_df['label'].to_list(), 'C':top_freq_df['count'].to_list()}
-        pickle.dump(obj, fp)
-
-    with open("output/COUNTMIN_MISRA_TOPWORDS_"+collection+"_"+query_value+".pkl", "wb") as fp:   #Pickling
+    with open("output/COUNTMIN_MISRA_TOPWORDS_"+collection+"_"+query+".pkl", "wb") as fp:   #Pickling
         obj = {'L':misra_label[:n_top_words], 'C':countmin_count}
         pickle.dump(obj, fp)
-
-
+        
 def main():
     # NOTE set QUERY = 'all' to run on entire db
-    QUERY = '^[aA]' # to query the ngrams which start with a specific letter, follow this format
-    collection = 'English'  # 'American' or 'English'
+    QUERY = 'all'
+    #QUERY = '^[xX]' # to query the ngrams which start with a specific letter, follow this format
+    collection = 'American'  # 'American' or 'English'
     
-    get_stream(QUERY, collection)  
-
+    
+    #get_stream(QUERY, collection)
+    get_top_words(QUERY, collection)
+    #query_misra_results(QUERY, collection)
 
 if __name__ == "__main__":
     main()
