@@ -59,16 +59,16 @@ def plot(query):
         try:
             eng_index = eng_l.index(lab)
             eng_counts[i] = eng_c[eng_index]
-            eng_errors[0][i] = eng_e[0][eng_index]
-            eng_errors[1][i] = eng_e[1][eng_index]
+            eng_errors[0][i] = eng_c[eng_index]-eng_e[0][eng_index]
+            eng_errors[1][i] = eng_e[1][eng_index]-eng_c[eng_index]
         except:
             pass
         
         try:
             amer_index = amer_l.index(lab)
             amer_counts[i] = amer_c[amer_index]
-            amer_errors[0][i] = amer_e[0][eng_index]
-            amer_errors[1][i] = amer_e[1][eng_index]
+            amer_errors[0][i] = amer_c[amer_index]-amer_e[0][eng_index]
+            amer_errors[1][i] = amer_e[1][eng_index]-amer_c[amer_index]
         except:
             pass
         
@@ -81,7 +81,7 @@ def plot(query):
     # Add some text forr labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Counts')
     #ax.set_xlabel('Labels')
-    ax.set_title('Misra-Gries & Count-Min Combined Results "'+query+'" '+' 1-grams')
+    ax.set_title('Misra-Gries & Count-Min Combined Results')
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=70)
     ax.legend()
