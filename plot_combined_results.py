@@ -25,16 +25,6 @@ def read_results(collection, n_top_words):
     else:
         lower_bound = [61980592] * n_top_words
 
-    #dat = {}
-    #with open("output/"+'MISRA_'+collection+'_all.pkl', "rb") as f:
-    #    dat = pickle.load(f)
-    #tmp_counts = dat['C']
-    #tmp_labels = dat['L']
-    #lower_bound = [0]*n_top_words
-    #for i, lab in enumerate(tmp_labels):
-    #    if lab in labels:
-    #        lower_bound[labels.index(lab)] = tmp_counts[i]
-
     return (counts, labels, [lower_bound, upper_bound])
 
 def plot():
@@ -56,27 +46,20 @@ def plot():
     eng_errors = [[0]*len(labels), [0]*len(labels)]
     amer_counts = [0]*len(labels)
     amer_errors = [[0]*len(labels), [0]*len(labels)]
-    
-    i = 0
-    for lab in labels:
-        try:
-            eng_index = eng_l.index(lab)
-            eng_counts[i] = eng_c[eng_index]
-            eng_errors[1][i] = eng_e[1][eng_index]-eng_c[eng_index]
-            eng_errors[0][i] = eng_e[0][eng_index]-eng_errors[1][i]
-            
-        except:
-            pass
-        
-        try:
-            amer_index = amer_l.index(lab)
-            amer_counts[i] = amer_c[amer_index]
-            amer_errors[1][i] = amer_e[1][eng_index]-amer_c[amer_index]
-            amer_errors[0][i] = amer_e[0][eng_index] - amer_errors[1][i]
-        except:
-            pass
-        
-        i += 1
+    print (labels)
+
+    for i, lab in enumerate(eng_l):
+        idx = labels.index(lab)
+        eng_counts[idx] = eng_c[i]
+        eng_errors[1][idx] = eng_e[1][i]-eng_c[i]
+        eng_errors[0][idx] = eng_e[0][i]-eng_errors[1][idx]
+
+    for i, lab in enumerate(amer_l):
+        idx = labels.index(lab)
+        amer_counts[idx] = amer_c[i]
+        amer_errors[1][idx] = amer_e[1][i]-amer_c[i]
+        amer_errors[0][idx] = amer_e[0][i]-amer_errors[1][idx]
+
     width = 0.35  # the width of the bars
     fig, ax = plt.subplots(figsize = (15, 8))
     rects1 = ax.bar(x - width/2, eng_counts,  width, yerr = eng_errors, capsize=2, label='British English')
@@ -84,8 +67,7 @@ def plot():
 
     # Add some text forr labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Counts')
-    #ax.set_xlabel('Labels')
-    ax.set_title('Two-Pass Misra-Gries Top Frequency Words with Count-Min Sketch Error Bounds')
+    ax.set_title('Two-Pass Misra-Gries Top Frequency Words with Count-Min Sketch PAC Bounds')
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=70)
     ax.legend()
